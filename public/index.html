@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8" />
+    <script src="https://cdn.jsdelivr.net/pyodide/v0.18.1/full/pyodide.js"></script>
+</head>
+
+<body>
+    <script type="module">
+        import { asyncRun as pyAsyncRun } from "./py-worker-api.js";
+        import { asyncRun as ftAsyncRun } from "./ft-worker-api.js";
+
+        const script = `
+            import micropip
+            await micropip.install('emoji')
+            await micropip.install('th-simple-preprocessor')
+            await micropip.install('newmm-tokenizer')
+            from newmm_tokenizer.tokenizer import word_tokenize
+            from th_preprocessor.preprocess import preprocess
+            from js import text
+            result = word_tokenize(preprocess(text))
+            " ".join(result)
+        `;
+
+        const context = {
+            text: "สวัสดีภาษาไทยตัดคำให้หน่อยสิ"
+        };
+        document.body.innerHTML += `<br />Text: ${context.text}`;
+
+        async function main() {
+            let tokenizedText;
+            try {
+                const { results, error } = await pyAsyncRun(script, context);
+                if (results) {
+                    tokenizedText = results;
+                    document.body.innerHTML += `<br />Tokenized Text: ${tokenizedText}`;
+                } else if (error) {
+                    console.log("py-webworker error: ", error);
+                }
+            } catch (e) {
+                console.log(
+                    `Error in py-webworker at ${e.filename}, Line: ${e.lineno}, ${e.message}`
+                );
+            }
+
+            try {
+                const ftResult = await ftAsyncRun(tokenizedText);
+                if ('error' in ftResult) {
+                    console.log("ft-webworker error: ", ftResult)
+                } else {
+                    const { label, confidence } = ftResult;
+                    document.body.innerHTML += `<br />Prediction Result: ${label}, ${confidence}`;
+                }
+            } catch (e) {
+                console.log(`Error in ft-webworker at ${e.filename}, Line: ${e.lineno}, ${e.message}`)
+            }
+        }
+
+        main();
+    </script>
+</body>
+
+</html>
