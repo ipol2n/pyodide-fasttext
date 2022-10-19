@@ -3,19 +3,15 @@
 
 <head>
     <meta charset="utf-8" />
-    <script src="https://cdn.jsdelivr.net/pyodide/v0.18.1/full/pyodide.js"></script>
+    <script src="./js/pyodide/pyodide.js"></script>
 </head>
 
 <body>
     <script type="module">
-        import { asyncRun as pyAsyncRun } from "./py-worker-api.js";
-        import { asyncRun as ftAsyncRun } from "./ft-worker-api.js";
+        import { asyncRun as pyAsyncRun } from "./js/py-worker-api.js";
+        import { asyncRun as ftAsyncRun } from "./js/ft-worker-api.js";
 
         const script = `
-            import micropip
-            await micropip.install('emoji')
-            await micropip.install('th-simple-preprocessor')
-            await micropip.install('newmm-tokenizer')
             from newmm_tokenizer.tokenizer import word_tokenize
             from th_preprocessor.preprocess import preprocess
             from js import text
